@@ -1,0 +1,36 @@
+name: Build ImmortalWrt for aliyun ap8220 with ebpf support
+on:
+  schedule:
+    - cron: "30 2 * * 1"
+  workflow_dispatch:  # This line enables the manual trigger
+
+jobs:
+  build_immortalwrt_daily:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up ImmortalWrt build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib  g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev  libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils  python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs  upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
+          
+      - name: Clone ImmortalWrt source
+        run: git clone https://github.com/VIKINGYFY/immortalwrt.git
+        
+      - name: Build ImmortalWrt
+        run: |
+          cd immortalwrt
+          cp ../.config ./
+          cp -r ../config-6.6 ./target/linux/qualcommax/config-6.6
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          make V=s -j$(nproc)
+
+      - name: Upload firmware
+        uses:  actions/upload-artifact@v4
+        id: artifact-upload-step
+        with:
+          name: immortalwrt-firmware-ap8220
+          path: immortalwrt/bin/targets/
