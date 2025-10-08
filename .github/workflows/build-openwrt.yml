@@ -22,8 +22,8 @@ jobs:
       - name: Build ImmortalWrt
         run: |
           cd immortalwrt
-          cp ../.config ./
-          cp -r ../config-6.6 ./target/linux/qualcommax/config-6.6
+          #cp ../.config ./
+          #cp -r ../config-6.6 ./target/linux/qualcommax/config-6.6
           ./scripts/feeds update -a
           ./scripts/feeds install -a
           make V=s -j$(nproc)
